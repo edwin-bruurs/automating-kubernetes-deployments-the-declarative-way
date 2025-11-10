@@ -637,7 +637,7 @@ patches:
         name: podinfo
       spec:
         replicas: 1
-  - pathc: |-
+  - patch: |-
       apiVersion: autoscaling/v2
       kind: HorizontalPodAutoscaler
       metadata:
@@ -1006,7 +1006,7 @@ paginate: false
 
 ![bg right:35% 60%](images/fluxcd.svg)
 
-<!-- _footer: Edwin Bruurs |CM.com DevDays 2025 -->
+<!-- _footer: Edwin Bruurs | CM.com DevDays 2025 -->
 
 <!--
 Speaker Notes:
