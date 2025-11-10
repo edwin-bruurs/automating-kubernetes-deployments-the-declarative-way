@@ -1,0 +1,111 @@
+version: "3"
+
+silent: true
+ 
+tasks:
+  1:
+    cmds:
+      - |
+        mkdir -p ./workshop-devdays-2025/apps/base/podinfo
+        
+        cp ./source-files/apps/base/podinfo/kustomization.yaml ./workshop-devdays-2025/apps/base/podinfo/kustomization.yaml
+        cp ./source-files/apps/base/podinfo/namespace.yaml ./workshop-devdays-2025/apps/base/podinfo/namespace.yaml
+        
+        git -C ./workshop-devdays-2025 add .
+        git -C ./workshop-devdays-2025 commit -m "feat: add base podinfo application"
+        git -C ./workshop-devdays-2025 push origin main
+
+  2:
+    cmds:
+      - |
+        mkdir -p ./workshop-devdays-2025/apps/development
+        mkdir -p ./workshop-devdays-2025/apps/production
+        
+        cp ./source-files/apps/development/kustomization.yaml ./workshop-devdays-2025/apps/development/kustomization.yaml
+        cp ./source-files/apps/production/kustomization.yaml ./workshop-devdays-2025/apps/production/kustomization.yaml
+
+        git -C ./workshop-devdays-2025 add .
+        git -C ./workshop-devdays-2025 commit -m "feat: add development and production overlay"
+        git -C ./workshop-devdays-2025 push origin main
+
+  3:
+    cmds:
+      - |
+        cp ./source-files/clusters/local/apps-development.yaml ./workshop-devdays-2025/clusters/local/apps-development.yaml
+        cp ./source-files/clusters/local/apps-production.yaml ./workshop-devdays-2025/clusters/local/apps-production.yaml
+
+        git -C ./workshop-devdays-2025 add .
+        git -C ./workshop-devdays-2025 commit -m "feat: add development and production overlay"
+        git -C ./workshop-devdays-2025 push origin main
+
+  4:
+    cmds:
+      - |
+        cp ./source-files/apps/development/kustomization-patched.yaml ./workshop-devdays-2025/apps/development/kustomization.yaml
+
+        git -C ./workshop-devdays-2025 add .
+        git -C ./workshop-devdays-2025 commit -m "fix: reduce replicas to 1 in development overlay"
+        git -C ./workshop-devdays-2025 push origin main
+        
+  5:
+    cmds:
+      - |
+        mkdir -p ./workshop-devdays-2025/infrastructure
+        mkdir -p ./workshop-devdays-2025/repositories
+
+        cp ./source-files/repositories/bitnami.yaml ./workshop-devdays-2025/repositories/bitnami.yaml
+        cp ./source-files/infrastructure/sealed-secrets.yaml ./workshop-devdays-2025/infrastructure/sealed-secrets.yaml
+
+        cp ./source-files/clusters/local/repositories.yaml ./workshop-devdays-2025/clusters/local/repositories.yaml
+        cp ./source-files/clusters/local/infrastructure.yaml ./workshop-devdays-2025/clusters/local/infrastructure.yaml
+
+        git -C ./workshop-devdays-2025 add .
+        git -C ./workshop-devdays-2025 commit -m "feat: deploy sealed-secrets"
+        git -C ./workshop-devdays-2025 push origin main
+  
+  cleanup:
+    cmds:
+      - | 
+        git -C ./workshop-devdays-2025 reset 8579fb3
+        git -C ./workshop-devdays-2025 push origin main --force
+        git -C ./workshop-devdays-2025 clean -fd
+
+  marp:
+    internal: true
+    cmds:
+      - |
+        marp {{ .CONVERTER }} {{ .ADDITIONAL_ARGS }} --author "Edwin Bruurs" --title {{ .TITLE }} {{ .SOURCE }}
+
+  automating-kubernetes-with-flux:
+    internal: true
+    vars: 
+      CONVERTER: '{{ .CONVERTER }}'
+      ADDITIONAL_ARGS: '{{ .ADDITIONAL_ARGS }}'
+    cmds:
+      - task: marp
+        vars:
+          CONVERTER: '{{ .CONVERTER }}'
+          ADDITIONAL_ARGS: '{{ .ADDITIONAL_ARGS }}'
+          SOURCE: 'automating-kubernetes-with-flux.md'
+          TITLE: 'Automating Kubernetes with Flux'
+
+  automating-kubernetes-with-flux-pptx:
+    desc: "Build the presentation."
+    cmds:
+      - task: automating-kubernetes-with-flux
+        vars:
+          CONVERTER: '--pptx'
+          ADDITIONAL_ARGS: '--allow-local-files'
+
+  automating-kubernetes-with-flux-html:
+    desc: "Build the presentation."
+    cmds:
+      - task: automating-kubernetes-with-flux
+        vars:
+          CONVERTER: --html
+
+  presentations:
+    desc: "Build all presentations."
+    deps:
+      - automating-kubernetes-with-flux-pptx
+      - automating-kubernetes-with-flux-html
